@@ -1,0 +1,18 @@
+[Unit]
+Description=Audio Share client (receive PC audio and play it on this machine)
+Documentation=https://github.com/mkckr0/audio-share
+After=pipewire.service wireplumber.service network-online.target
+Wants=pipewire.service
+
+[Service]
+Type=simple
+# --- adapt these two lines ---
+ExecStart=/usr/local/bin/as-client 192.168.1.10 65530
+#ExecStart=/usr/local/bin/as-client 192.168.1.10 65530 --target alsa_output.platform-sound.stereo-fallback
+Restart=always
+RestartSec=3
+# The client reconnects by itself; this only covers crashes.
+Environment=PIPEWIRE_REMOTE=pipewire-0
+
+[Install]
+WantedBy=default.target

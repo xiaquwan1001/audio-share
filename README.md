@@ -52,8 +52,8 @@ Audio Share can share Windows/Linux computer's audio to Android phone over netwo
     - Windows 10+ x86_64 with latest [Microsoft Visual C++ 2015-2022 Redistributable (x64)](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) ([vc_redist.x64.exe](https://aka.ms/vs/17/release/vc_redist.x64.exe)).
     - Linux with PipeWire.
 - The audio player on PC can work normally. That's to say that you should have a sound card and the audio endpoint is in available state. Otherwise, you need some [extra setups](#extra-setups-for-no-audio-endpoint).
-- The phone with Android 6.0(API 23)+.
-- The network (e.g. Wi-Fi or USB tethering) that the phone can connect with the PC.
+- The client side: a phone with Android 6.0(API 23)+, **or any Linux machine with PipeWire** ([`linux-client/`](linux-client/), no GUI, no extra dependencies).
+- The network (e.g. Wi-Fi or USB tethering) that the client can connect with the PC.
 
 ## Usage for Windows GUI
 - Download APK file and AudioShareServer.exe from [latest release](https://github.com/mkckr0/audio-share/releases/latest).
@@ -68,6 +68,23 @@ Audio Share can share Windows/Linux computer's audio to Android phone over netwo
 - The Windows will ask you to add firewall rules automatically while Linux won't. So if your Linux distribution enables firewall, you need to configure firewall manually.
 - Install APK to your phone and open it. Modify the "Host" part to make sure it's same as the value of previous step, such as `192.168.xxx.xxx`. Click "▶" button and enjoy the audio🎶.
 
+
+## Usage on Linux (CLI client, no Android)
+
+The [Android app](#usage-for-windowslinux-cmd) is not the only client: [`linux-client/`](linux-client/)
+contains a small C client that plays the stream on any Linux box with PipeWire —
+desktop, SBC, headless mini-PC, or an ARM tablet running a mainline-kernel distro.
+It needs no GUI and no libraries beyond `pw-cat` (`pipewire-bin`).
+
+```sh
+cd linux-client
+make                                # native; `make CROSS=aarch64-linux-musl-` for ARM
+./as-client 192.168.xxx.xxx 65530   # server address, default port
+```
+
+It reconnects on its own, so a systemd user unit is enough (see
+[`linux-client/audio-share-client.service`](linux-client/audio-share-client.service)).
+Details, protocol notes and troubleshooting: [`linux-client/README.md`](linux-client/README.md).
 
 ## Configure Firewall Rules on Linux
 ### Add rules
@@ -205,6 +222,9 @@ Turns off or ignore battery optimizations can let it work.
     - vcpkg is required for install dependencies.
     - Run `vcpkg install asio protobuf spdlog[wchar] wil nlohmann-json` to install deps. The vcpkg triplet is `x64-windows-static-md`.
     - Visual Studio 2022 with "Desktop development with C++" workload and "C++ MFC for latest v143 build tools (x86 & x64)" option is required for compiling.
+
+- Linux Client
+    - Plain C11, `make` (or a cross toolchain). No libraries are linked; playback uses `pw-cat` at runtime.
 
 - Server CMD
     - CMake and a compiler support C++20 is required. Linux also need `libpipewire-dev` or `pipewire-devel`.

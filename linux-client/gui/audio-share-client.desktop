@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Audio Share
+Name[zh_CN]=Audio Share 音频接收
+Comment=Play the audio of your PC on this device
+Comment[zh_CN]=把电脑的声音放到这台设备上播放
+Exec=audio-share-gui
+Icon=audio-share-client
+Terminal=false
+Categories=AudioVideo;Player;
+Keywords=audio;share;stream;speaker;pipewire;audio-share;
+Keywords[zh_CN]=音频;串流;音箱;电脑声音;
+StartupNotify=true
+StartupWMClass=audio-share-client

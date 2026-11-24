@@ -1,0 +1,14 @@
+[Unit]
+Description=Audio Share client (receive PC audio and play it here)
+Documentation=https://github.com/xuqianhui/audio-share
+After=pipewire.service wireplumber.service network-online.target
+Wants=pipewire.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/audio-share-client-run
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

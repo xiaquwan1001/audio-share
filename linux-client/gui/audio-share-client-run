@@ -1,0 +1,58 @@
+#!/usr/bin/python3
+"""Exec `as-client` with the settings saved by the GUI.
+
+Used as ExecStart of the packaged systemd user unit, so the GUI and the boot
+service always agree on server address / sink.  Config:
+~/.config/audio-share-client/config.json  ({host, port, target, latency})
+
+Any extra arguments are appended verbatim, which keeps the unit usable for
+overrides: `audio-share-client-run --verbose`.
+"""
+
+import json
+import os
+import sys
+
+import gi  # noqa: F401  (only for GLib.get_user_config_dir; cheap and present)
+
+from gi.repository import GLib
+
+AS_CLIENT = "/usr/bin/as-client"
+CONFIG_PATH = os.path.join(GLib.get_user_config_dir(), "audio-share-client", "config.json")
+
+
+def main(argv):
+    host, port, target, latency = "", 65530, "", ""
+    try:
+        with open(CONFIG_PATH, "r", encoding="utf-8") as fh:
+            cfg = json.load(fh)
+        host = str(cfg.get("host") or "").strip()
+        port = int(cfg.get("port") or 65530)
+        target = str(cfg.get("target") or "").strip()
+        latency = str(cfg.get("latency") or "").strip()
+    except (OSError, ValueError):
+        pass
+
+    host = os.environ.get("AUDIO_SHARE_HOST", host)
+
+    if not host:
+        sys.stderr.write("audio-share-client: 未配置服务器地址；"
+                         "请先打开 Audio Share 窗口填好地址，或设置 AUDIO_SHARE_HOST\n")
+        return 2
+
+    cmd = [AS_CLIENT, host, str(port)]
+    if target:
+        cmd += ["--target", target]
+    if latency:
+        cmd += ["--latency", latency]
+    cmd += argv
+
+    try:
+        os.execv(AS_CLIENT, cmd)
+    except OSError as exc:
+        sys.stderr.write("audio-share-client: cannot exec %s: %s\n" % (AS_CLIENT, exc))
+        return 127
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
